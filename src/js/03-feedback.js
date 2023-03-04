@@ -1,38 +1,33 @@
-const throttle = require('lodash.throttle');
+import throttle from 'lodash.throttle';
 
-const FEEDBACK_STORAGE = 'feedback-form-state';
-const inPut = document.querySelector('input');
-const formSubmit = document.querySelector('.feedback-form');
-const textArea = document.querySelector('textarea');
+const formEl = document.querySelector('.feedback-form');
+const textareaEl = document.querySelector('.feedback-form textarea');
+const inputEl = document.querySelector('.feedback-form input')
 
-function handelStorageSection(event) {
-  const formData = {
-    email: inPut.value,
-    message: textArea.value,
-  };
+const formData = {};
+const savedData = localStorage.getItem('feedback-form-state');
+const parseData = JSON.parse(savedData);
 
-  localStorage.setItem(FEEDBACK_STORAGE, JSON.stringify(formData));
+const onDataStorage = (e) => {
+    formData[e.target.name] = e.target.value;
+    localStorage.setItem('feedback-form-state', JSON.stringify(formData))
+};
+
+const onDataSubmit = (e) => {
+    e.preventDefault();
+    e.target.reset();
+    localStorage.removeItem('feedback-form-state');
+    console.log(parseData);
+};
+
+const storageCheck = () => {
+if (savedData) {
+    inputEl.value = parseData.email;
+    textareaEl.value = parseData.message;  
 }
+};
 
-formSubmit.addEventListener('input', throttle(handelStorageSection, 500));
+storageCheck();
 
-formSubmit.addEventListener('submit', event => {
-  event.preventDefault();
-  if (!inPut.value || !textArea.value) {
-    return alert('fill up all fields');
-  }
-  handelStorageSection();
-  console.log({ email: inPut.value, message: textArea.value });
-  event.currentTarget.reset();
-});
-
-const feedbackFormInfo = localStorage.getItem(FEEDBACK_STORAGE);
-const feedbackFormInfoParsed = JSON.parse(feedbackFormInfo);
-
-if (!feedbackFormInfoParsed) {
-  return;
-}
-inPut.value = feedbackFormInfoParsed.email;
-textArea.value = feedbackFormInfoParsed.message;
-
-localStorage.removeItem('feedback-form-state');
+formEl.addEventListener('submit', onDataSubmit);
+formEl.addEventListener('input', throttle(onDataStorage, 500));
